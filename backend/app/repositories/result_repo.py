@@ -93,3 +93,42 @@ class ResultRepository:
                 }
             )
         return items
+
+    def get_record_detail(self, session_id: int) -> dict | None:
+        consultation_session = self.get_session(session_id=session_id)
+        if consultation_session is None:
+            return None
+
+        patient = self.get_patient(consultation_session.patient_id)
+        result = None
+        report = None
+        feature = None
+
+        if consultation_session.result_id:
+            result = self.db.exec(
+                select(ConstitutionResult).where(
+                    ConstitutionResult.result_id == consultation_session.result_id
+                )
+            ).first()
+
+        capture = self.get_selected_capture(session_id=session_id)
+        if capture:
+            feature = self.db.exec(
+                select(TongueFeature).where(TongueFeature.capture_id == capture.capture_id)
+            ).first()
+
+        report = self.db.exec(
+            select(ResultReport).where(ResultReport.session_id == session_id)
+        ).first()
+
+        return {
+            "session_id": consultation_session.session_id,
+            "patient_name": patient.name if patient else "未知患者",
+            "session_status": consultation_session.session_status,
+            "primary_constitution": result.primary_constitution if result else None,
+            "confidence_level": result.confidence_level if result else None,
+            "risk_level": result.risk_level if result else None,
+            "tongue_color": feature.tongue_color if feature else None,
+            "coating_color": feature.coating_color if feature else None,
+            "summary_text": report.summary_text if report else None,
+        }

@@ -1,7 +1,11 @@
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-router'
 
+import AdminLayout from '../layouts/AdminLayout.vue'
 import PatientLayout from '../layouts/PatientLayout.vue'
 import { useConsultationStore } from '../stores/consultation'
+import LoginView from '../views/admin/LoginView.vue'
+import RecordDetailView from '../views/admin/RecordDetailView.vue'
+import RecordListView from '../views/admin/RecordListView.vue'
 import AnalyzingView from '../views/patient/AnalyzingView.vue'
 import CaptureConfirmView from '../views/patient/CaptureConfirmView.vue'
 import CaptureGuideView from '../views/patient/CaptureGuideView.vue'
@@ -30,6 +34,15 @@ const routes: RouteRecordRaw[] = [
       { path: 'analyzing', component: AnalyzingView },
       { path: 'result', component: ResultView },
       { path: 'finish', component: FinishView },
+    ],
+  },
+  {
+    path: '/admin',
+    component: AdminLayout,
+    children: [
+      { path: 'login', component: LoginView },
+      { path: 'records', component: RecordListView },
+      { path: 'records/:sessionId', component: RecordDetailView },
     ],
   },
 ]
