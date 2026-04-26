@@ -1,0 +1,16 @@
+tongue_color:
+  pale_red:
+    qi_deficiency: 1.0
+    yang_deficiency: 1.0
+  red:
+    yin_deficiency: 1.0
+    damp_heat: 1.0
+  pale:
+    qi_deficiency: 1.0
+    yang_deficiency: 1.5
+coating_color:
+  white:
+    qi_deficiency: 0.5
+    yang_deficiency: 0.5
+  yellow:
+    damp_heat: 1.0
