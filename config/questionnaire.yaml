@@ -1,0 +1,29 @@
+questions:
+  - question_code: fatigue_level
+    question_text: 你最近是否容易疲劳、乏力？
+    dimension_code: qi_deficiency
+    options:
+      - value: never
+        label: 从不
+      - value: rarely
+        label: 很少
+      - value: sometimes
+        label: 有时
+      - value: often
+        label: 经常
+      - value: always
+        label: 总是
+  - question_code: cold_hands_feet
+    question_text: 你是否经常手脚发凉、怕冷？
+    dimension_code: yang_deficiency
+    options:
+      - value: never
+        label: 从不
+      - value: rarely
+        label: 很少
+      - value: sometimes
+        label: 有时
+      - value: often
+        label: 经常
+      - value: always
+        label: 总是

@@ -1,0 +1,33 @@
+constitutions:
+  - balanced
+  - qi_deficiency
+  - yang_deficiency
+  - yin_deficiency
+  - phlegm_dampness
+  - damp_heat
+  - qi_stagnation
+scoring:
+  fatigue_level:
+    never:
+      balanced: 2
+    rarely:
+      balanced: 1
+      qi_deficiency: 1
+    sometimes:
+      qi_deficiency: 2
+    often:
+      qi_deficiency: 3
+    always:
+      qi_deficiency: 4
+  cold_hands_feet:
+    never:
+      balanced: 2
+    rarely:
+      balanced: 1
+      yang_deficiency: 1
+    sometimes:
+      yang_deficiency: 2
+    often:
+      yang_deficiency: 3
+    always:
+      yang_deficiency: 4

@@ -37,3 +37,16 @@ def client(test_engine):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def session_id(client) -> int:
+    response = client.post(
+        "/api/sessions",
+        json={
+            "name": "测试患者",
+            "gender": "female",
+            "age": 32,
+        },
+    )
+    return response.json()["session_id"]
