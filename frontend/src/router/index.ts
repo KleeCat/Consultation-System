@@ -1,4 +1,10 @@
-import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-router'
+import {
+  createMemoryHistory,
+  createRouter,
+  createWebHistory,
+  type RouterHistory,
+  type RouteRecordRaw,
+} from 'vue-router'
 
 import AdminLayout from '../layouts/AdminLayout.vue'
 import PatientLayout from '../layouts/PatientLayout.vue'
@@ -47,9 +53,9 @@ const routes: RouteRecordRaw[] = [
   },
 ]
 
-export function buildRouter() {
+export function buildRouter(history: RouterHistory = createMemoryHistory()) {
   const router = createRouter({
-    history: createMemoryHistory(),
+    history,
     routes,
   })
 
@@ -65,3 +71,6 @@ export function buildRouter() {
 }
 
 export default buildRouter
+export function buildWebRouter() {
+  return buildRouter(createWebHistory())
+}
