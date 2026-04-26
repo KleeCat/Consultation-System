@@ -10,4 +10,14 @@ describe('camera preview', () => {
     })
     expect(wrapper.text()).toContain('请允许摄像头权限')
   })
+
+  it('emits a valid built-in demo image when clicking the demo button', async () => {
+    const wrapper = mount(CameraPreview)
+
+    await wrapper.get('button').trigger('click')
+
+    expect(wrapper.emitted('captured')?.[0]).toEqual([
+      'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAgUlEQVR4nNXOMREAIBDAsFL/IphRgixE/MA1CrLu2ZRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMRJnMT5OzD1ACdUApJaXFJYAAAAAElFTkSuQmCC',
+    ])
+  })
 })
