@@ -33,10 +33,14 @@ def submit_questionnaire(
         raise HTTPException(status_code=404, detail="Session not found")
 
     questionnaire_service = QuestionnaireService(db)
-    session_status, summary = questionnaire_service.submit_answers(
-        session_id=session_id,
-        answers=payload.answers,
-    )
+    try:
+        session_status, summary = questionnaire_service.submit_answers(
+            session_id=session_id,
+            answers=payload.answers,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     return QuestionnaireSubmitResponse(
         session_id=session_id,
         session_status=session_status,

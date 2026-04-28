@@ -8,26 +8,137 @@ constitutions:
   - qi_stagnation
 scoring:
   fatigue_level:
-    never:
+    energetic:
       balanced: 2
-    rarely:
+    occasional_fatigue:
       balanced: 1
       qi_deficiency: 1
-    sometimes:
+    afternoon_tired:
       qi_deficiency: 2
-    often:
-      qi_deficiency: 3
-    always:
+    slight_activity_tired:
       qi_deficiency: 4
   cold_hands_feet:
-    never:
+    basically_not_cold:
       balanced: 2
-    rarely:
+    cold_in_winter:
       balanced: 1
       yang_deficiency: 1
-    sometimes:
-      yang_deficiency: 2
-    often:
+    hands_feet_cold:
       yang_deficiency: 3
-    always:
+    often_need_more_clothes:
       yang_deficiency: 4
+  dry_mouth_throat:
+    rarely:
+      balanced: 2
+    occasional:
+      balanced: 1
+      yin_deficiency: 1
+    frequent:
+      yin_deficiency: 2
+    worse_at_night:
+      yin_deficiency: 4
+  body_heaviness:
+    rarely:
+      balanced: 2
+    occasional:
+      balanced: 1
+      phlegm_dampness: 1
+    frequent:
+      phlegm_dampness: 3
+    almost_daily:
+      phlegm_dampness: 4
+  appetite_after_meal:
+    normal_comfortable:
+      balanced: 2
+    average_appetite:
+      qi_deficiency: 1
+    bloated_after_meal:
+      qi_deficiency: 1
+      phlegm_dampness: 2
+    sleepy_after_meal:
+      qi_deficiency: 2
+      phlegm_dampness: 3
+  mouth_taste:
+    normal:
+      balanced: 2
+    sticky_mouth:
+      phlegm_dampness: 1
+      damp_heat: 1
+    bitter_mouth:
+      damp_heat: 2
+    sticky_and_bitter:
+      damp_heat: 4
+  stool_pattern:
+    normal:
+      balanced: 2
+    loose:
+      qi_deficiency: 1
+      phlegm_dampness: 1
+    sticky:
+      phlegm_dampness: 2
+      damp_heat: 1
+    dry:
+      yin_deficiency: 2
+  sleep_quality:
+    sleep_well:
+      balanced: 2
+    light_sleep:
+      balanced: 1
+      yin_deficiency: 1
+    dreamful_tired:
+      yin_deficiency: 2
+      qi_stagnation: 1
+    hard_to_fall_asleep:
+      yin_deficiency: 3
+      qi_stagnation: 1
+  sweating_pattern:
+    normal:
+      balanced: 2
+    sweat_after_activity:
+      qi_deficiency: 2
+    sweat_when_nervous:
+      qi_deficiency: 1
+      qi_stagnation: 1
+    night_sweat:
+      yin_deficiency: 3
+  emotion_state:
+    stable:
+      balanced: 2
+    occasionally_irritable:
+      qi_stagnation: 1
+    sighing_low_mood:
+      qi_stagnation: 3
+    often_depressed:
+      qi_stagnation: 4
+  stress_response:
+    little_effect:
+      balanced: 1
+    chest_tightness:
+      qi_stagnation: 2
+    irritability:
+      qi_stagnation: 2
+      damp_heat: 1
+    sleep_appetite_affected:
+      qi_stagnation: 3
+      yin_deficiency: 1
+  sleep_schedule:
+    regular:
+      balanced: 2
+    occasionally_late:
+      yin_deficiency: 1
+    often_after_midnight:
+      yin_deficiency: 2
+      damp_heat: 1
+    chronic_sleep_deprivation:
+      yin_deficiency: 3
+      damp_heat: 2
+  activity_level:
+    regular_exercise:
+      balanced: 2
+    occasional_activity:
+      balanced: 1
+    mostly_sedentary:
+      phlegm_dampness: 2
+    sedentary_and_tired:
+      qi_deficiency: 2
+      phlegm_dampness: 2

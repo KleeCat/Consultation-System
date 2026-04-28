@@ -54,7 +54,26 @@ def session_id(client) -> int:
 
 
 @pytest.fixture()
-def prepared_session(client) -> dict:
+def complete_questionnaire_answers() -> list[dict[str, str]]:
+    return [
+        {"question_code": "fatigue_level", "answer_value": "slight_activity_tired"},
+        {"question_code": "cold_hands_feet", "answer_value": "often_need_more_clothes"},
+        {"question_code": "dry_mouth_throat", "answer_value": "occasional"},
+        {"question_code": "body_heaviness", "answer_value": "frequent"},
+        {"question_code": "appetite_after_meal", "answer_value": "average_appetite"},
+        {"question_code": "mouth_taste", "answer_value": "sticky_mouth"},
+        {"question_code": "stool_pattern", "answer_value": "loose"},
+        {"question_code": "sleep_quality", "answer_value": "light_sleep"},
+        {"question_code": "sweating_pattern", "answer_value": "sweat_after_activity"},
+        {"question_code": "emotion_state", "answer_value": "occasionally_irritable"},
+        {"question_code": "stress_response", "answer_value": "chest_tightness"},
+        {"question_code": "sleep_schedule", "answer_value": "occasionally_late"},
+        {"question_code": "activity_level", "answer_value": "sedentary_and_tired"},
+    ]
+
+
+@pytest.fixture()
+def prepared_session(client, complete_questionnaire_answers) -> dict:
     session_response = client.post(
         "/api/sessions",
         json={
@@ -66,12 +85,7 @@ def prepared_session(client) -> dict:
     current_session_id = session_response.json()["session_id"]
     client.post(
         f"/api/sessions/{current_session_id}/questionnaire",
-        json={
-            "answers": [
-                {"question_code": "fatigue_level", "answer_value": "often"},
-                {"question_code": "cold_hands_feet", "answer_value": "always"},
-            ]
-        },
+        json={"answers": complete_questionnaire_answers},
     )
     import base64
     from io import BytesIO

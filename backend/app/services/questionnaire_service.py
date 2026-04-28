@@ -42,10 +42,40 @@ class QuestionnaireService:
         }
 
     def submit_answers(self, session_id: int, answers: list[QuestionnaireAnswerInput]) -> tuple[str, dict[str, float]]:
+        seen_codes: set[str] = set()
         answer_dict: dict[str, str] = {}
+        normalized_answers: list[tuple[QuestionnaireAnswerInput, dict[str, object], dict[str, object]]] = []
+
         for item in answers:
+            if item.question_code not in self.question_map:
+                raise ValueError(f"unknown question_code: {item.question_code}")
+            if item.question_code in seen_codes:
+                raise ValueError(f"duplicate question_code: {item.question_code}")
+
             question = self.question_map[item.question_code]
-            option = next(opt for opt in question["options"] if opt["value"] == item.answer_value)
+            option_map = {opt["value"]: opt for opt in question["options"]}
+            option = option_map.get(item.answer_value)
+            if option is None:
+                raise ValueError(f"invalid answer_value for {item.question_code}: {item.answer_value}")
+
+            seen_codes.add(item.question_code)
+            normalized_answers.append((item, question, option))
+            answer_dict[item.question_code] = item.answer_value
+
+        required_codes = {
+            question["question_code"]
+            for question in self.config["questions"]
+            if question.get("required", True)
+        }
+        missing_codes = sorted(required_codes - seen_codes)
+        if missing_codes:
+            raise ValueError(f"missing required questions: {', '.join(missing_codes)}")
+
+        consultation_session = self.repo.get_session(session_id=session_id)
+        if consultation_session is None:
+            raise ValueError(f"session not found: {session_id}")
+
+        for item, question, option in normalized_answers:
             answer = QuestionnaireAnswer(
                 session_id=session_id,
                 question_code=item.question_code,
@@ -56,9 +86,11 @@ class QuestionnaireService:
                 score_contribution=0,
             )
             self.repo.save_answer(answer)
-            answer_dict[item.question_code] = item.answer_value
 
         summary = score_questionnaire(answer_dict)
-        consultation_session = self.repo.get_session(session_id=session_id)
-        self.repo.update_session_status(consultation_session, "questionnaire_completed")
+        self.repo.update_session_questionnaire(
+            consultation_session,
+            "questionnaire_completed",
+            self.config["version"],
+        )
         return consultation_session.session_status, summary
