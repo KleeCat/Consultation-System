@@ -46,13 +46,15 @@ describe('camera preview', () => {
   })
 
   afterEach(() => {
+    vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
-  it('requests camera access and emits a captured frame', async () => {
-    getUserMediaMock.mockResolvedValue({
+  it('requests camera access, binds the stream to video, and emits a captured frame', async () => {
+    const mediaStream = {
       getTracks: () => [{ stop: stopMock }],
-    })
+    }
+    getUserMediaMock.mockResolvedValue(mediaStream)
 
     const wrapper = mount(CameraPreview)
     await flushPromises()
@@ -64,6 +66,9 @@ describe('camera preview', () => {
     )
 
     const video = wrapper.get('video').element as HTMLVideoElement
+    expect(video.srcObject).toBe(mediaStream)
+    expect(playMock).toHaveBeenCalled()
+
     Object.defineProperty(video, 'videoWidth', { configurable: true, value: 640 })
     Object.defineProperty(video, 'videoHeight', { configurable: true, value: 640 })
 
@@ -86,6 +91,23 @@ describe('camera preview', () => {
 
     expect(wrapper.text()).toContain('请允许摄像头权限后重试')
     expect(wrapper.text()).toContain('重新开启摄像头')
+  })
+
+  it('shows timeout guidance when camera startup keeps pending', async () => {
+    vi.useFakeTimers()
+    getUserMediaMock.mockImplementation(() => new Promise(() => {}))
+
+    const wrapper = mount(CameraPreview)
+    await vi.advanceTimersByTimeAsync(8000)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('摄像头启动超时')
+    const retryButton = wrapper
+      .findAll('button')
+      .find((button) => button.text() === '重新开启摄像头')
+
+    expect(retryButton).toBeTruthy()
+    expect(retryButton!.attributes('disabled')).toBeUndefined()
   })
 
   it('emits a non-trivial demo tongue image for fallback testing', async () => {

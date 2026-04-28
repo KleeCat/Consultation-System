@@ -2,13 +2,13 @@
   <section class="capture-panel">
     <div class="preview-stage" :class="{ ready: cameraStatus === 'ready' }">
       <video
-        v-if="cameraStatus === 'ready'"
+        v-show="cameraStatus === 'ready'"
         ref="videoRef"
         autoplay
         muted
         playsinline
       />
-      <div v-else class="preview-placeholder">
+      <div v-if="cameraStatus !== 'ready'" class="preview-placeholder">
         <div class="preview-badge">舌象采集</div>
         <h3>{{ previewTitle }}</h3>
         <p>{{ previewDescription }}</p>
@@ -23,6 +23,9 @@
       </p>
       <p v-else-if="cameraError === 'unavailable'" class="helper-text warning">
         未检测到可用摄像头，请上传本地照片或使用示例图继续测试
+      </p>
+      <p v-else-if="cameraError === 'timeout'" class="helper-text warning">
+        摄像头启动超时，请检查浏览器授权、设备占用后重试
       </p>
       <p v-else class="helper-text neutral">
         请让舌面居中、光线均匀，避免逆光和明显阴影
@@ -81,12 +84,16 @@ const videoRef = ref<HTMLVideoElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const streamRef = ref<MediaStream | null>(null)
 const cameraStatus = ref<'idle' | 'starting' | 'ready' | 'error'>('idle')
-const cameraError = ref<'' | 'permission_denied' | 'unavailable'>('')
+const cameraError = ref<'' | 'permission_denied' | 'unavailable' | 'timeout'>('')
+const CAMERA_START_TIMEOUT_MS = 8000
+
+let activeStartRequestId = 0
 
 const previewTitle = computed(() => {
   if (cameraStatus.value === 'starting') return '正在准备摄像头'
   if (cameraError.value === 'permission_denied') return '摄像头权限未开启'
   if (cameraError.value === 'unavailable') return '当前无法使用摄像头'
+  if (cameraError.value === 'timeout') return '摄像头启动超时'
   return '准备采集实时舌象'
 })
 
@@ -94,6 +101,7 @@ const previewDescription = computed(() => {
   if (cameraStatus.value === 'starting') return '建立视频流后即可直接拍照采集'
   if (cameraError.value === 'permission_denied') return '你仍然可以改用上传图片或示例舌象图继续流程'
   if (cameraError.value === 'unavailable') return '这通常发生在无摄像头设备、虚拟机或浏览器禁用了媒体能力时'
+  if (cameraError.value === 'timeout') return '请检查授权弹窗、系统相机占用，或点击重新开启摄像头再次尝试'
   return '系统会优先尝试调用本机摄像头，也支持上传图片或示例图兜底'
 })
 
@@ -112,9 +120,17 @@ async function startCamera() {
     return
   }
 
+  const requestId = ++activeStartRequestId
   stopCamera()
   cameraStatus.value = 'starting'
   cameraError.value = ''
+
+  const timeoutId = window.setTimeout(() => {
+    if (requestId !== activeStartRequestId || cameraStatus.value !== 'starting') return
+
+    cameraStatus.value = 'error'
+    cameraError.value = 'timeout'
+  }, CAMERA_START_TIMEOUT_MS)
 
   try {
     const mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -126,6 +142,11 @@ async function startCamera() {
       },
     })
 
+    if (requestId !== activeStartRequestId) {
+      mediaStream.getTracks().forEach((track) => track.stop())
+      return
+    }
+
     streamRef.value = mediaStream
     if (videoRef.value) {
       videoRef.value.srcObject = mediaStream
@@ -133,6 +154,8 @@ async function startCamera() {
     }
     cameraStatus.value = 'ready'
   } catch (error) {
+    if (requestId !== activeStartRequestId) return
+
     const errorName =
       typeof error === 'object' && error && 'name' in error ? String(error.name) : ''
     cameraStatus.value = 'error'
@@ -140,6 +163,8 @@ async function startCamera() {
       errorName === 'NotAllowedError' || errorName === 'PermissionDeniedError'
         ? 'permission_denied'
         : 'unavailable'
+  } finally {
+    window.clearTimeout(timeoutId)
   }
 }
 
@@ -192,6 +217,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  activeStartRequestId += 1
   stopCamera()
 })
 </script>
