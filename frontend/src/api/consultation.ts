@@ -37,6 +37,37 @@ export interface QuestionnaireSubmitResponse {
   summary: Record<string, number>
 }
 
+export interface QuestionnaireOption {
+  value: string
+  label: string
+  description?: string
+}
+
+export interface QuestionnaireQuestion {
+  question_code: string
+  group_code: string
+  question_text: string
+  question_help?: string
+  required: boolean
+  question_type: 'single_choice'
+  options: QuestionnaireOption[]
+}
+
+export interface QuestionnaireGroup {
+  group_code: string
+  group_title: string
+  group_description: string
+}
+
+export interface QuestionnaireTemplateResponse {
+  questionnaire_code: string
+  version: string
+  title: string
+  description: string
+  groups: QuestionnaireGroup[]
+  questions: QuestionnaireQuestion[]
+}
+
 export interface CaptureResponse {
   capture_id: number
   session_id: number
@@ -59,6 +90,10 @@ export interface AnalyzeResponse {
 
 export function createSession(payload: SessionCreatePayload) {
   return httpPost<SessionCreateResponse>('/api/sessions', payload)
+}
+
+export function getQuestionnaireTemplate() {
+  return httpGet<QuestionnaireTemplateResponse>('/api/questionnaire/template')
 }
 
 export function submitQuestionnaire(
