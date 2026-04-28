@@ -17,8 +17,29 @@ class QuestionnaireService:
     def __init__(self, db: Session):
         self.db = db
         self.repo = QuestionnaireRepository(db)
-        config = yaml.safe_load(QUESTIONNAIRE_PATH.read_text(encoding="utf-8"))
-        self.question_map = {item["question_code"]: item for item in config["questions"]}
+        self.config = yaml.safe_load(QUESTIONNAIRE_PATH.read_text(encoding="utf-8"))
+        self.question_map = {item["question_code"]: item for item in self.config["questions"]}
+
+    def get_template(self) -> dict[str, object]:
+        return {
+            "questionnaire_code": self.config["questionnaire_code"],
+            "version": self.config["version"],
+            "title": self.config["title"],
+            "description": self.config["description"],
+            "groups": self.config["groups"],
+            "questions": [
+                {
+                    "question_code": question["question_code"],
+                    "group_code": question["group_code"],
+                    "question_text": question["question_text"],
+                    "question_help": question.get("question_help"),
+                    "required": question.get("required", True),
+                    "question_type": question["question_type"],
+                    "options": question["options"],
+                }
+                for question in self.config["questions"]
+            ],
+        }
 
     def submit_answers(self, session_id: int, answers: list[QuestionnaireAnswerInput]) -> tuple[str, dict[str, float]]:
         answer_dict: dict[str, str] = {}

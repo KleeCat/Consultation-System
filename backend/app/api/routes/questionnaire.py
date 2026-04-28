@@ -2,15 +2,27 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 
 from backend.app.core.database import get_session
-from backend.app.schemas.questionnaire import QuestionnaireSubmitRequest, QuestionnaireSubmitResponse
+from backend.app.schemas.questionnaire import (
+    QuestionnaireSubmitRequest,
+    QuestionnaireSubmitResponse,
+    QuestionnaireTemplateResponse,
+)
 from backend.app.services.questionnaire_service import QuestionnaireService
 from backend.app.services.session_service import SessionService
 
 
-router = APIRouter(prefix="/api/sessions", tags=["questionnaire"])
+router = APIRouter(prefix="/api", tags=["questionnaire"])
 
 
-@router.post("/{session_id}/questionnaire", response_model=QuestionnaireSubmitResponse)
+@router.get("/questionnaire/template", response_model=QuestionnaireTemplateResponse)
+def get_questionnaire_template(
+    db: Session = Depends(get_session),
+) -> QuestionnaireTemplateResponse:
+    template = QuestionnaireService(db).get_template()
+    return QuestionnaireTemplateResponse(**template)
+
+
+@router.post("/sessions/{session_id}/questionnaire", response_model=QuestionnaireSubmitResponse)
 def submit_questionnaire(
     session_id: int,
     payload: QuestionnaireSubmitRequest,

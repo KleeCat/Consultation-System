@@ -1,29 +1,211 @@
+questionnaire_code: tcm_constitution_questionnaire
+version: v1
+title: 中医问诊问卷
+description: 请根据近两周的真实感受完成作答。
+groups:
+  - group_code: body_sensation
+    group_title: 体感与寒热
+    group_description: 先了解近期精力、寒热与身体轻重感。
+  - group_code: diet_sleep_excretion
+    group_title: 饮食睡眠与排泄
+    group_description: 继续了解胃口、睡眠、排泄与出汗情况。
+  - group_code: emotion_lifestyle
+    group_title: 情绪压力与生活习惯
+    group_description: 最后了解近期情绪、压力与作息活动状态。
 questions:
   - question_code: fatigue_level
-    question_text: 你最近是否容易疲劳、乏力？
+    group_code: body_sensation
+    question_text: 最近精力状态怎么样？
+    question_help: 请按近两周大多数时候的感受选择。
     dimension_code: qi_deficiency
+    required: true
+    question_type: single_choice
     options:
-      - value: never
-        label: 从不
-      - value: rarely
-        label: 很少
-      - value: sometimes
-        label: 有时
-      - value: often
-        label: 经常
-      - value: always
-        label: 总是
+      - value: energetic
+        label: 精力充足
+      - value: occasional_fatigue
+        label: 偶尔疲劳
+      - value: afternoon_tired
+        label: 下午容易乏力
+      - value: slight_activity_tired
+        label: 稍活动就累
   - question_code: cold_hands_feet
-    question_text: 你是否经常手脚发凉、怕冷？
+    group_code: body_sensation
+    question_text: 你平时是否怕冷、手脚发凉？
     dimension_code: yang_deficiency
+    required: true
+    question_type: single_choice
     options:
-      - value: never
-        label: 从不
+      - value: basically_not_cold
+        label: 基本不怕冷
+      - value: cold_in_winter
+        label: 天冷时明显
+      - value: hands_feet_cold
+        label: 平时也常发凉
+      - value: often_need_more_clothes
+        label: 经常怕冷想加衣
+  - question_code: dry_mouth_throat
+    group_code: body_sensation
+    question_text: 你最近是否常觉得口干、咽干，想喝水？
+    dimension_code: yin_deficiency
+    required: true
+    question_type: single_choice
+    options:
+      - value: rarely
+        label: 基本没有
+      - value: occasional
+        label: 偶尔
+      - value: frequent
+        label: 经常
+      - value: worse_at_night
+        label: 夜间或下午更明显
+  - question_code: body_heaviness
+    group_code: body_sensation
+    question_text: 你身体是否容易觉得沉重、困倦、不清爽？
+    dimension_code: phlegm_dampness
+    required: true
+    question_type: single_choice
+    options:
       - value: rarely
         label: 很少
-      - value: sometimes
-        label: 有时
-      - value: often
+      - value: occasional
+        label: 偶尔
+      - value: frequent
         label: 经常
-      - value: always
-        label: 总是
+      - value: almost_daily
+        label: 几乎每天
+  - question_code: appetite_after_meal
+    group_code: diet_sleep_excretion
+    question_text: 你的胃口和饭后感受更接近哪种？
+    dimension_code: phlegm_dampness
+    required: true
+    question_type: single_choice
+    options:
+      - value: normal_comfortable
+        label: 胃口正常，饭后轻松
+      - value: average_appetite
+        label: 胃口一般
+      - value: bloated_after_meal
+        label: 饭后容易胀
+      - value: sleepy_after_meal
+        label: 饭后容易犯困发闷
+  - question_code: mouth_taste
+    group_code: diet_sleep_excretion
+    question_text: 你最近更常见哪种口感或口气状态？
+    dimension_code: damp_heat
+    required: true
+    question_type: single_choice
+    options:
+      - value: normal
+        label: 基本正常
+      - value: sticky_mouth
+        label: 口中发黏
+      - value: bitter_mouth
+        label: 容易口苦
+      - value: sticky_and_bitter
+        label: 又黏又苦
+  - question_code: stool_pattern
+    group_code: diet_sleep_excretion
+    question_text: 你的大便情况更接近哪种？
+    dimension_code: phlegm_dampness
+    required: true
+    question_type: single_choice
+    options:
+      - value: normal
+        label: 基本成形顺畅
+      - value: loose
+        label: 偶尔偏稀
+      - value: sticky
+        label: 偏黏不爽
+      - value: dry
+        label: 容易干结
+  - question_code: sleep_quality
+    group_code: diet_sleep_excretion
+    question_text: 最近睡眠情况如何？
+    dimension_code: yin_deficiency
+    required: true
+    question_type: single_choice
+    options:
+      - value: sleep_well
+        label: 入睡和睡醒都不错
+      - value: light_sleep
+        label: 偶尔睡不沉
+      - value: dreamful_tired
+        label: 容易多梦，醒来累
+      - value: hard_to_fall_asleep
+        label: 入睡难或夜里易醒
+  - question_code: sweating_pattern
+    group_code: diet_sleep_excretion
+    question_text: 你最近出汗情况更接近哪种？
+    dimension_code: qi_deficiency
+    required: true
+    question_type: single_choice
+    options:
+      - value: normal
+        label: 正常
+      - value: sweat_after_activity
+        label: 稍活动就出汗
+      - value: sweat_when_nervous
+        label: 紧张时容易出汗
+      - value: night_sweat
+        label: 夜里容易出汗
+  - question_code: emotion_state
+    group_code: emotion_lifestyle
+    question_text: 最近情绪状态更接近哪种？
+    dimension_code: qi_stagnation
+    required: true
+    question_type: single_choice
+    options:
+      - value: stable
+        label: 比较平稳
+      - value: occasionally_irritable
+        label: 偶尔烦闷
+      - value: sighing_low_mood
+        label: 容易郁闷叹气
+      - value: often_depressed
+        label: 经常压抑或心情不舒
+  - question_code: stress_response
+    group_code: emotion_lifestyle
+    question_text: 压力大时你更容易出现哪种反应？
+    dimension_code: qi_stagnation
+    required: true
+    question_type: single_choice
+    options:
+      - value: little_effect
+        label: 影响不大
+      - value: chest_tightness
+        label: 胸口发闷
+      - value: irritability
+        label: 容易烦躁
+      - value: sleep_appetite_affected
+        label: 食欲和睡眠都受影响
+  - question_code: sleep_schedule
+    group_code: emotion_lifestyle
+    question_text: 你的作息更接近哪种？
+    dimension_code: yin_deficiency
+    required: true
+    question_type: single_choice
+    options:
+      - value: regular
+        label: 比较规律
+      - value: occasionally_late
+        label: 偶尔晚睡
+      - value: often_after_midnight
+        label: 经常 12 点后睡
+      - value: chronic_sleep_deprivation
+        label: 长期熬夜且休息不足
+  - question_code: activity_level
+    group_code: emotion_lifestyle
+    question_text: 你的日常活动量更接近哪种？
+    dimension_code: qi_deficiency
+    required: true
+    question_type: single_choice
+    options:
+      - value: regular_exercise
+        label: 规律运动
+      - value: occasional_activity
+        label: 偶尔活动
+      - value: mostly_sedentary
+        label: 久坐为主
+      - value: sedentary_and_tired
+        label: 久坐且活动后也不解乏
