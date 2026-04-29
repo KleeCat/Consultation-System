@@ -1,55 +1,73 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { describe, expect, it } from 'vitest'
 
-import { patientStages } from '../../constants/patientStages'
+import PatientActionBar from '../../components/patient/PatientActionBar.vue'
+import PatientCard from '../../components/patient/PatientCard.vue'
+import PatientPageShell from '../../components/patient/PatientPageShell.vue'
+import PatientStageHeader from '../../components/patient/PatientStageHeader.vue'
+import PatientStatusCard from '../../components/patient/PatientStatusCard.vue'
+import PatientTipCard from '../../components/patient/PatientTipCard.vue'
 
-describe('patient stage metadata', () => {
-  beforeEach(() => {
-    vi.resetModules()
-    vi.clearAllMocks()
-    delete document.body.dataset.appSurface
-    window.history.pushState({}, '', '/')
-  })
-
-  it('defines stable stage copy for patient entry and result pages', () => {
-    expect(patientStages.welcome.eyebrow).toBe('开始问诊')
-    expect(patientStages.result.title).toContain('结果')
-    expect(patientStages.finish.primaryActionLabel).toBe('返回首页')
-  })
-
-  it('wires the patient theme through runtime route changes', async () => {
-    const app = {
-      use: vi.fn(),
-      mount: vi.fn(),
-    }
-    const afterEachHandlers: Array<(to: { path: string }) => void> = []
-    const router = {
-      afterEach: vi.fn((handler: (to: { path: string }) => void) => {
-        afterEachHandlers.push(handler)
-      }),
-    }
-
-    vi.doMock('vue', async (importOriginal) => {
-      const actual = await importOriginal<typeof import('vue')>()
-      return {
-        ...actual,
-        createApp: vi.fn(() => app),
-      }
+describe('patient page shell components', () => {
+  it('renders shell header card and action content with patient classes', () => {
+    const wrapper = mount(PatientPageShell, {
+      slots: {
+        header: mount(PatientStageHeader, {
+          props: {
+            eyebrow: '开始问诊',
+            title: '欢迎体验舌诊分析',
+            description: '请先阅读说明后开始采集。',
+          },
+        }).html(),
+        default: mount(PatientCard, {
+          props: { title: '采集说明', variant: 'highlight' },
+          slots: { default: '<p>body</p>' },
+        }).html(),
+        actions: mount(PatientActionBar, {
+          slots: {
+            default:
+              '<button class="primary">开始采集</button><button class="secondary">查看示例</button>',
+          },
+        }).html(),
+      },
     })
-    vi.doMock('pinia', () => ({
-      createPinia: vi.fn(() => ({ __pinia: true })),
-    }))
-    vi.doMock('../../router', () => ({
-      buildWebRouter: vi.fn(() => router),
-    }))
 
-    window.history.pushState({}, '', '/patient/welcome')
+    expect(wrapper.find('.patient-page-shell').exists()).toBe(true)
+    expect(wrapper.find('.patient-stage-header').exists()).toBe(true)
+    expect(wrapper.find('.patient-card').exists()).toBe(true)
+    expect(wrapper.find('.patient-action-bar').exists()).toBe(true)
+    expect(wrapper.text()).toContain('开始问诊')
+    expect(wrapper.text()).toContain('body')
+    expect(wrapper.text()).toContain('开始采集')
+    expect(wrapper.text()).toContain('查看示例')
+  })
 
-    await import('../../main')
+  it('supports tip and status tone variants', () => {
+    const warning = mount(PatientTipCard, {
+      props: { tone: 'warning', title: '填写提醒' },
+      slots: { default: 'tip copy' },
+    })
+    const error = mount(PatientStatusCard, {
+      props: { tone: 'error', title: '分析暂未完成', description: '请返回上一页重试' },
+    })
 
-    expect(document.body.dataset.appSurface).toBe('patient')
-    expect(router.afterEach).toHaveBeenCalledTimes(1)
+    expect(warning.classes()).toContain('tone-warning')
+    expect(warning.text()).toContain('填写提醒')
+    expect(error.classes()).toContain('tone-error')
+    expect(error.text()).toContain('分析暂未完成')
+    expect(error.text()).toContain('请返回上一页重试')
+  })
 
-    afterEachHandlers[0]?.({ path: '/admin/login' })
-    expect(document.body.dataset.appSurface).toBeUndefined()
+  it('supports primary and secondary actions together in the action bar', () => {
+    const wrapper = mount(PatientActionBar, {
+      slots: {
+        default:
+          '<button class="primary">primary</button><button class="secondary">secondary</button>',
+      },
+    })
+
+    expect(wrapper.find('.patient-action-bar').exists()).toBe(true)
+    expect(wrapper.text()).toContain('primary')
+    expect(wrapper.text()).toContain('secondary')
   })
 })
