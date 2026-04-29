@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
 import App from './App.vue'
+import './assets/patient-theme.css'
 import { buildWebRouter } from './router'
 
 const app = createApp(App)

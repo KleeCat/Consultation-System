@@ -1,0 +1,26 @@
+:root {
+  --patient-page-gap: 20px;
+  --patient-card-padding: 24px;
+  --patient-card-radius: 24px;
+  --patient-button-radius: 16px;
+  --patient-button-height: 48px;
+  --patient-card-bg: rgba(255, 252, 251, 0.96);
+  --patient-accent: #b55b6d;
+  --patient-accent-strong: #d37b8e;
+  --patient-text-strong: #5b3037;
+  --patient-text-muted: #7d6166;
+  --patient-line: rgba(164, 118, 126, 0.16);
+  --patient-shadow: 0 18px 36px rgba(111, 59, 69, 0.08);
+  --patient-success: #4f8d63;
+  --patient-warning: #a86a3f;
+  --patient-error: #b54861;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(255, 246, 241, 0.98), rgba(244, 233, 228, 0.96)),
+    #f7efeb;
+  color: var(--patient-text-strong);
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
