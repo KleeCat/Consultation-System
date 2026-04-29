@@ -50,11 +50,19 @@ const qualityMessage = ref('')
 const errorMessage = ref('')
 const uploading = ref(false)
 
+function extractBase64Payload(imagePayload: string) {
+  return imagePayload.includes(',') ? imagePayload.split(',')[1] ?? '' : imagePayload
+}
+
+function buildPreviewDataUrl(imagePayload: string) {
+  return imagePayload.includes(',') ? imagePayload : `data:image/png;base64,${imagePayload}`
+}
+
 function goBackToGuide() {
   router.push('/patient/capture-guide')
 }
 
-async function handleCaptured(imageBase64: string) {
+async function handleCaptured(imagePayload: string) {
   if (uploading.value) return
 
   if (!store.sessionId) {
@@ -67,11 +75,12 @@ async function handleCaptured(imageBase64: string) {
   uploading.value = true
 
   try {
-    const response = await uploadCapture(store.sessionId, imageBase64)
+    const uploadPayload = extractBase64Payload(imagePayload)
+    const response = await uploadCapture(store.sessionId, uploadPayload)
     store.latestCapture = {
       capture_id: response.capture_id,
       quality_status: response.quality_status,
-      image_base64: `data:image/png;base64,${imageBase64}`,
+      image_base64: buildPreviewDataUrl(imagePayload),
       image_path: response.image_path,
     }
     store.status = 'tongue_captured'

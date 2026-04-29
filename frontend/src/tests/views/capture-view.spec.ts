@@ -27,6 +27,13 @@ vi.mock('../../components/capture/CameraPreview.vue', () => ({
         <button type="button" class="emit-capture" @click="$emit('captured', 'camera-base64')">
           emit-capture
         </button>
+        <button
+          type="button"
+          class="emit-jpeg-upload"
+          @click="$emit('captured', 'data:image/jpeg;base64,jpeg-bytes')"
+        >
+          emit-jpeg-upload
+        </button>
       </div>
     `,
   },
@@ -130,5 +137,31 @@ describe('capture view', () => {
     expect(wrapper.text()).toContain('上传失败')
     expect(wrapper.text()).toContain('Request failed: 500')
     expect(push).not.toHaveBeenCalled()
+  })
+
+  it('preserves jpeg data url for preview while uploading bare base64 payload', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const store = useConsultationStore()
+    store.sessionId = 9
+
+    vi.mocked(uploadCapture).mockResolvedValue({
+      capture_id: 8,
+      quality_status: 'good',
+      image_path: '/uploads/capture.jpg',
+    })
+
+    const wrapper = mount(CaptureView, {
+      global: {
+        plugins: [pinia],
+      },
+    })
+
+    await wrapper.get('button.emit-jpeg-upload').trigger('click')
+    await flushPromises()
+
+    expect(uploadCapture).toHaveBeenCalledWith(9, 'jpeg-bytes')
+    expect(store.latestCapture?.image_base64).toBe('data:image/jpeg;base64,jpeg-bytes')
+    expect(push).toHaveBeenCalledWith('/patient/capture-confirm')
   })
 })

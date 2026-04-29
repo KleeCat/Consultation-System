@@ -191,11 +191,9 @@ async function startCamera() {
   }
 }
 
-function emitBase64(dataUrlOrBase64: string) {
-  const base64 = dataUrlOrBase64.includes(',') ? dataUrlOrBase64.split(',')[1] : dataUrlOrBase64
-  if (base64) {
-    emit('captured', base64)
-  }
+function emitCapturedImage(dataUrlOrBase64: string) {
+  if (!dataUrlOrBase64) return
+  emit('captured', dataUrlOrBase64)
 }
 
 function captureFromCamera() {
@@ -212,7 +210,7 @@ function captureFromCamera() {
   if (!context) return
 
   context.drawImage(video, 0, 0, width, height)
-  emitBase64(canvas.toDataURL('image/png'))
+  emitCapturedImage(canvas.toDataURL('image/png'))
 }
 
 function handleFileChange(event: Event) {
@@ -225,7 +223,7 @@ function handleFileChange(event: Event) {
   const reader = new FileReader()
   reader.onload = () => {
     const result = String(reader.result ?? '')
-    emitBase64(result)
+    emitCapturedImage(result)
   }
   reader.readAsDataURL(file)
 }

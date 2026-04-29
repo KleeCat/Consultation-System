@@ -8,6 +8,8 @@ const stopMock = vi.fn()
 const drawImageMock = vi.fn()
 const getUserMediaMock = vi.fn()
 const toDataUrlMock = vi.fn(() => 'data:image/png;base64,camera-shot')
+const fileReaderReadAsDataUrlMock = vi.fn()
+let fileReaderResult = 'data:image/jpeg;base64,upload-jpeg-bytes'
 
 describe('camera preview', () => {
   beforeEach(() => {
@@ -16,6 +18,8 @@ describe('camera preview', () => {
     drawImageMock.mockClear()
     getUserMediaMock.mockReset()
     toDataUrlMock.mockClear()
+    fileReaderReadAsDataUrlMock.mockClear()
+    fileReaderResult = 'data:image/jpeg;base64,upload-jpeg-bytes'
 
     Object.defineProperty(globalThis.HTMLMediaElement.prototype, 'srcObject', {
       configurable: true,
@@ -42,6 +46,23 @@ describe('camera preview', () => {
       value: {
         getUserMedia: getUserMediaMock,
       },
+    })
+
+    class MockFileReader {
+      result: string | ArrayBuffer | null = null
+      onload: null | (() => void) = null
+
+      readAsDataURL(file: Blob) {
+        fileReaderReadAsDataUrlMock(file)
+        this.result = fileReaderResult
+        this.onload?.()
+      }
+    }
+
+    Object.defineProperty(globalThis, 'FileReader', {
+      configurable: true,
+      writable: true,
+      value: MockFileReader,
     })
   })
 
@@ -84,7 +105,7 @@ describe('camera preview', () => {
     await captureButton!.trigger('click')
 
     expect(drawImageMock).toHaveBeenCalled()
-    expect(wrapper.emitted('captured')?.[0]).toEqual(['camera-shot'])
+    expect(wrapper.emitted('captured')?.[0]).toEqual(['data:image/png;base64,camera-shot'])
   })
 
   it('shows permission guidance and lets the user retry camera authorization', async () => {
@@ -153,5 +174,24 @@ describe('camera preview', () => {
     const payload = wrapper.emitted('captured')?.[0]?.[0]
     expect(typeof payload).toBe('string')
     expect((payload as string).length).toBeGreaterThan(1000)
+  })
+
+  it('keeps the full jpeg data url when uploading a local file', async () => {
+    getUserMediaMock.mockRejectedValue(Object.assign(new Error('camera unavailable'), { name: 'NotFoundError' }))
+
+    const wrapper = mount(CameraPreview)
+    await flushPromises()
+
+    const file = new File(['jpeg-bytes'], 'tongue.jpg', { type: 'image/jpeg' })
+    const input = wrapper.get('input[type="file"]')
+
+    Object.defineProperty(input.element, 'files', {
+      configurable: true,
+      value: [file],
+    })
+    await input.trigger('change')
+
+    expect(fileReaderReadAsDataUrlMock).toHaveBeenCalledWith(file)
+    expect(wrapper.emitted('captured')?.at(-1)).toEqual(['data:image/jpeg;base64,upload-jpeg-bytes'])
   })
 })
