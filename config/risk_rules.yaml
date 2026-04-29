@@ -1,0 +1,4 @@
+risk:
+  high_constitutions:
+    - damp_heat
+  default: low

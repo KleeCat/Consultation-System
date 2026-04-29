@@ -1,0 +1,13 @@
+advice:
+  qi_deficiency:
+    diet_advice: "饮食以清淡温和、规律进餐为主。"
+    routine_advice: "注意休息，避免过度劳累。"
+    emotion_advice: "保持情绪平稳，减少思虑过度。"
+  yang_deficiency:
+    diet_advice: "少食生冷，适当温补。"
+    routine_advice: "注意保暖，规律作息。"
+    emotion_advice: "保持心情舒展，避免长期紧张。"
+  default:
+    diet_advice: "保持饮食均衡。"
+    routine_advice: "规律作息。"
+    emotion_advice: "注意情绪调节。"
