@@ -24,6 +24,43 @@ describe('profile view', () => {
     vi.mocked(createSession).mockReset()
   })
 
+  it('shows grouped profile fields and keeps API behavior unchanged', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    const wrapper = mount(ProfileView, {
+      global: {
+        plugins: [pinia],
+      },
+    })
+
+    expect(wrapper.text()).toContain('基础信息')
+    expect(wrapper.text()).toContain('姓名')
+    expect(wrapper.text()).toContain('性别')
+    expect(wrapper.text()).toContain('年龄')
+    expect(wrapper.text()).toContain('填写说明')
+    expect(wrapper.text()).toContain('返回欢迎页')
+  })
+
+  it('shows inline validation when profile fields are incomplete or invalid', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    const wrapper = mount(ProfileView, {
+      global: {
+        plugins: [pinia],
+      },
+    })
+
+    const inputs = wrapper.findAll('input')
+    await inputs[1].setValue('0')
+    await wrapper.get('button.primary').trigger('click')
+
+    expect(wrapper.text()).toContain('请输入姓名')
+    expect(wrapper.text()).toContain('年龄需在 1 到 120 岁之间')
+    expect(createSession).not.toHaveBeenCalled()
+  })
+
   it('creates session and routes to questionnaire', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
@@ -46,7 +83,7 @@ describe('profile view', () => {
     await inputs[0].setValue('张三')
     await inputs[1].setValue('35')
     await wrapper.get('select').setValue('male')
-    await wrapper.get('button').trigger('click')
+    await wrapper.get('button.primary').trigger('click')
     await flushPromises()
 
     const store = useConsultationStore()
@@ -60,10 +97,10 @@ describe('profile view', () => {
     expect(push).toHaveBeenCalledWith('/patient/questionnaire')
   })
 
-  it('shows an error message when session creation fails', async () => {
+  it('shows unified submission failure feedback when profile submission fails', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    vi.mocked(createSession).mockRejectedValue(new Error('Request failed: 404'))
+    vi.mocked(createSession).mockRejectedValue(new Error('Request failed: 500'))
 
     const wrapper = mount(ProfileView, {
       global: {
@@ -71,11 +108,15 @@ describe('profile view', () => {
       },
     })
 
-    await wrapper.get('button').trigger('click')
+    const inputs = wrapper.findAll('input')
+    await inputs[0].setValue('张三')
+    await inputs[1].setValue('30')
+    await wrapper.get('button.primary').trigger('click')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('提交失败：Request failed: 404')
+    expect(wrapper.text()).toContain('提交失败')
+    expect(wrapper.text()).toContain('Request failed: 500')
     expect(push).not.toHaveBeenCalled()
-    expect(wrapper.get('button').attributes('disabled')).toBeUndefined()
+    expect(wrapper.get('button.primary').attributes('disabled')).toBeUndefined()
   })
 })
