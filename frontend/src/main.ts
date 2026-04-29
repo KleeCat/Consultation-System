@@ -8,12 +8,14 @@ import { buildWebRouter } from './router'
 const app = createApp(App)
 const router = buildWebRouter()
 
+const isPatientPath = (path: string) => path === '/patient' || path.startsWith('/patient/')
+
 const syncPatientTheme = (path: string) => {
   if (typeof document === 'undefined') {
     return
   }
 
-  if (path.startsWith('/patient')) {
+  if (isPatientPath(path)) {
     document.body.dataset.appSurface = 'patient'
     return
   }
