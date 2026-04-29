@@ -19,5 +19,8 @@ describe('patient stage metadata', () => {
     expect(mainTs).toContain(`document.body.dataset.appSurface = 'patient'`)
     expect(mainTs).toContain(`path.startsWith('/patient')`)
     expect(patientThemeCss).toContain(`body[data-app-surface='patient']`)
+    expect(patientThemeCss).toContain(`margin: 0;`)
+    expect(patientThemeCss).toContain(`font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;`)
+    expect(patientThemeCss).not.toContain(`body {\r\n  margin: 0;`)
   })
 })

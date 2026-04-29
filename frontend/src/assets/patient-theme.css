@@ -1,8 +1,3 @@
-body {
-  margin: 0;
-  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-}
-
 body[data-app-surface='patient'] {
   --patient-page-gap: 20px;
   --patient-card-padding: 24px;
@@ -19,6 +14,8 @@ body[data-app-surface='patient'] {
   --patient-success: #4f8d63;
   --patient-warning: #a86a3f;
   --patient-error: #b54861;
+  margin: 0;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   background:
     radial-gradient(circle at top, rgba(255, 246, 241, 0.98), rgba(244, 233, 228, 0.96)),
     #f7efeb;
