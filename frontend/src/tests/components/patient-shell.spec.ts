@@ -13,6 +13,11 @@ describe('patient stage metadata', () => {
 
   it('wires the patient theme from the frontend entry', () => {
     const mainTs = readFileSync(resolve(__dirname, '../../main.ts'), 'utf8')
+    const patientThemeCss = readFileSync(resolve(__dirname, '../../assets/patient-theme.css'), 'utf8')
+
     expect(mainTs).toContain(`import './assets/patient-theme.css'`)
+    expect(mainTs).toContain(`document.body.dataset.appSurface = 'patient'`)
+    expect(mainTs).toContain(`path.startsWith('/patient')`)
+    expect(patientThemeCss).toContain(`body[data-app-surface='patient']`)
   })
 })

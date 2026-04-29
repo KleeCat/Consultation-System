@@ -1,4 +1,9 @@
-:root {
+body {
+  margin: 0;
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+body[data-app-surface='patient'] {
   --patient-page-gap: 20px;
   --patient-card-padding: 24px;
   --patient-card-radius: 24px;
@@ -14,13 +19,8 @@
   --patient-success: #4f8d63;
   --patient-warning: #a86a3f;
   --patient-error: #b54861;
-}
-
-body {
-  margin: 0;
   background:
     radial-gradient(circle at top, rgba(255, 246, 241, 0.98), rgba(244, 233, 228, 0.96)),
     #f7efeb;
   color: var(--patient-text-strong);
-  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }

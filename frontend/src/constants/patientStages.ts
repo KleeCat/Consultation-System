@@ -1,3 +1,12 @@
+export type PatientStageConfig = {
+  order: number
+  eyebrow: string
+  title: string
+  description: string
+  primaryActionLabel: string
+  secondaryActionLabel?: string
+}
+
 export const patientStages = {
   welcome: {
     order: 0,
@@ -63,4 +72,6 @@ export const patientStages = {
     primaryActionLabel: '返回首页',
     secondaryActionLabel: '重新问诊',
   },
-} as const
+} as const satisfies Record<string, PatientStageConfig>
+
+export type PatientStageKey = keyof typeof patientStages
