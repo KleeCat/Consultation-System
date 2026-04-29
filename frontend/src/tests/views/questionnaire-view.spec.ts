@@ -23,7 +23,7 @@ const template = {
   questionnaire_code: 'tcm_constitution_questionnaire',
   version: 'v1',
   title: '中医问诊问卷',
-  description: '请根据近两周的真实感受完成作答。',
+  description: '请根据最近两周的真实感受完成作答。',
   groups: [
     {
       group_code: 'body_sensation',
@@ -62,6 +62,22 @@ const template = {
   ],
 }
 
+function mountView() {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const store = useConsultationStore()
+  store.sessionId = 9
+
+  return {
+    store,
+    wrapper: mount(QuestionnaireView, {
+      global: {
+        plugins: [pinia],
+      },
+    }),
+  }
+}
+
 describe('questionnaire view', () => {
   beforeEach(() => {
     push.mockReset()
@@ -69,41 +85,26 @@ describe('questionnaire view', () => {
     vi.mocked(submitQuestionnaire).mockReset()
   })
 
-  it('loads template and renders the first question group', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-    const store = useConsultationStore()
-    store.sessionId = 9
-
+  it('renders questionnaire inside the shared shell when the template loads', async () => {
     vi.mocked(getQuestionnaireTemplate).mockResolvedValue(template)
 
-    const wrapper = mount(QuestionnaireView, {
-      global: {
-        plugins: [pinia],
-      },
-    })
+    const { wrapper } = mountView()
 
     await flushPromises()
 
     expect(getQuestionnaireTemplate).toHaveBeenCalled()
+    expect(wrapper.find('.patient-page-shell').exists()).toBe(true)
+    expect(wrapper.text()).toContain('体质问答')
+    expect(wrapper.text()).toContain('根据最近两周的真实感受完成作答')
     expect(wrapper.text()).toContain('体感与寒热')
     expect(wrapper.text()).toContain('最近精力状态怎么样？')
     expect(wrapper.text()).toContain('精力充足')
   })
 
   it('blocks next group when required answers are missing', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-    const store = useConsultationStore()
-    store.sessionId = 9
-
     vi.mocked(getQuestionnaireTemplate).mockResolvedValue(template)
 
-    const wrapper = mount(QuestionnaireView, {
-      global: {
-        plugins: [pinia],
-      },
-    })
+    const { wrapper } = mountView()
 
     await flushPromises()
     await wrapper.get('[data-testid="next-group"]').trigger('click')
@@ -113,11 +114,6 @@ describe('questionnaire view', () => {
   })
 
   it('supports group pagination and submission', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-    const store = useConsultationStore()
-    store.sessionId = 9
-
     vi.mocked(getQuestionnaireTemplate).mockResolvedValue(template)
     vi.mocked(submitQuestionnaire).mockResolvedValue({
       session_id: 9,
@@ -125,21 +121,16 @@ describe('questionnaire view', () => {
       summary: { qi_deficiency: 3 },
     })
 
-    const wrapper = mount(QuestionnaireView, {
-      global: {
-        plugins: [pinia],
-      },
-    })
+    const { store, wrapper } = mountView()
 
     await flushPromises()
 
-    await wrapper.get('button').trigger('click')
+    await wrapper.findAll('.option-card')[0].trigger('click')
     await wrapper.get('[data-testid="next-group"]').trigger('click')
 
     expect(wrapper.text()).toContain('情绪压力与生活习惯')
 
-    const optionButtons = wrapper.findAll('button')
-    await optionButtons[1].trigger('click')
+    await wrapper.findAll('.option-card')[1].trigger('click')
     await wrapper.get('[data-testid="submit-questionnaire"]').trigger('click')
     await flushPromises()
 
@@ -152,24 +143,36 @@ describe('questionnaire view', () => {
     expect(push).toHaveBeenCalledWith('/patient/capture-guide')
   })
 
-  it('shows a load error message when template loading fails', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-    const store = useConsultationStore()
-    store.sessionId = 9
-
+  it('shows a retryable page-level error card when template loading fails', async () => {
     vi.mocked(getQuestionnaireTemplate).mockRejectedValue(new Error('Request failed: 500'))
 
-    const wrapper = mount(QuestionnaireView, {
-      global: {
-        plugins: [pinia],
-      },
-    })
+    const { wrapper } = mountView()
 
     await flushPromises()
 
     expect(wrapper.text()).toContain('问卷加载失败')
     expect(wrapper.text()).toContain('重新加载')
+    expect(wrapper.text()).toContain('返回建档页')
+  })
+
+  it('preserves current answers when questionnaire submission fails', async () => {
+    vi.mocked(getQuestionnaireTemplate).mockResolvedValue(template)
+    vi.mocked(submitQuestionnaire).mockRejectedValue(new Error('Request failed: 500'))
+
+    const { wrapper } = mountView()
+
+    await flushPromises()
+
+    await wrapper.findAll('.option-card')[0].trigger('click')
+    await wrapper.get('[data-testid="next-group"]').trigger('click')
+    await wrapper.findAll('.option-card')[1].trigger('click')
+    await wrapper.get('[data-testid="submit-questionnaire"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('问卷提交失败')
+    expect(wrapper.find('[data-testid="submit-questionnaire"]').exists()).toBe(true)
+    expect(wrapper.findAll('.option-card.selected')).toHaveLength(1)
+    expect(wrapper.findAll('.option-card.selected')[0].text()).toContain('经常压抑或心情不舒')
   })
 
   it('redirects to welcome when session is missing', async () => {

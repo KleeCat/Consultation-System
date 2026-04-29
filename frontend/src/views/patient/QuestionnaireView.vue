@@ -1,15 +1,22 @@
 <template>
-  <main class="questionnaire-page">
-    <section v-if="loadError" class="status-card error-card">
-      <h2>问卷暂时不可用</h2>
-      <p>{{ loadError }}</p>
-      <button type="button" class="secondary" @click="loadTemplate">重新加载</button>
-    </section>
+  <PatientPageShell class="questionnaire-page">
+    <template #header>
+      <PatientStageHeader v-bind="patientStages.questionnaire" />
+    </template>
 
-    <section v-else-if="loading" class="status-card">
-      <h2>正在加载问卷</h2>
-      <p>正在获取问诊题库，请稍候…</p>
-    </section>
+    <PatientStatusCard
+      v-if="loadError"
+      tone="error"
+      title="问卷加载失败"
+      :description="loadError"
+    />
+
+    <PatientStatusCard
+      v-else-if="loading"
+      tone="loading"
+      title="正在加载问卷"
+      description="正在获取问诊题库，请稍候…"
+    />
 
     <template v-else-if="template && currentGroup">
       <QuestionnaireProgress
@@ -20,11 +27,11 @@
         :current-group-title="currentGroup.group_title"
       />
 
-      <section class="group-card">
+      <PatientCard variant="highlight">
         <p class="group-eyebrow">当前分组</p>
         <h2>{{ currentGroup.group_title }}</h2>
         <p>{{ currentGroup.group_description }}</p>
-      </section>
+      </PatientCard>
 
       <QuestionCard
         v-for="question in currentGroup.questions"
@@ -32,11 +39,34 @@
         v-model="answers[question.question_code]"
         :question="question"
       />
+    </template>
 
-      <p v-if="validationError" class="feedback error">{{ validationError }}</p>
-      <p v-if="submitError" class="feedback error">{{ submitError }}</p>
+    <PatientStatusCard
+      v-else
+      tone="empty"
+      title="暂无问卷内容"
+      description="当前未获取到可展示的问卷分组，请重新加载后重试。"
+    />
 
-      <div class="actions">
+    <template v-if="template && currentGroup && (validationError || submitError)" #aside>
+      <PatientTipCard v-if="validationError" tone="warning">
+        <p>{{ validationError }}</p>
+      </PatientTipCard>
+
+      <PatientTipCard v-if="submitError" tone="warning">
+        <p>{{ submitError }}</p>
+      </PatientTipCard>
+    </template>
+
+    <template v-if="loadError" #actions>
+      <PatientActionBar>
+        <button type="button" class="secondary" @click="loadTemplate">重新加载</button>
+        <button type="button" class="ghost" @click="goToProfile">返回建档页</button>
+      </PatientActionBar>
+    </template>
+
+    <template v-else-if="template && currentGroup" #actions>
+      <PatientActionBar>
         <button
           type="button"
           class="secondary"
@@ -68,9 +98,9 @@
         >
           {{ submitting ? '提交中…' : '提交并进入舌象采集' }}
         </button>
-      </div>
+      </PatientActionBar>
     </template>
-  </main>
+  </PatientPageShell>
 </template>
 
 <script setup lang="ts">
@@ -84,8 +114,15 @@ import {
   type QuestionnaireQuestion,
   type QuestionnaireTemplateResponse,
 } from '../../api/consultation'
+import PatientActionBar from '../../components/patient/PatientActionBar.vue'
+import PatientCard from '../../components/patient/PatientCard.vue'
+import PatientPageShell from '../../components/patient/PatientPageShell.vue'
+import PatientStageHeader from '../../components/patient/PatientStageHeader.vue'
+import PatientStatusCard from '../../components/patient/PatientStatusCard.vue'
+import PatientTipCard from '../../components/patient/PatientTipCard.vue'
 import QuestionCard from '../../components/questionnaire/QuestionCard.vue'
 import QuestionnaireProgress from '../../components/questionnaire/QuestionnaireProgress.vue'
+import { patientStages } from '../../constants/patientStages'
 import { useConsultationStore } from '../../stores/consultation'
 
 type GroupedQuestionnaireGroup = QuestionnaireGroup & {
@@ -128,6 +165,10 @@ function isGroupComplete(index: number) {
 function clearMessages() {
   validationError.value = ''
   submitError.value = ''
+}
+
+function goToProfile() {
+  router.push('/patient/profile')
 }
 
 async function loadTemplate() {
@@ -220,25 +261,7 @@ onMounted(() => {
 
 <style scoped>
 .questionnaire-page {
-  display: grid;
   gap: 20px;
-  max-width: 880px;
-  margin: 0 auto;
-}
-
-.status-card,
-.group-card {
-  display: grid;
-  gap: 10px;
-  padding: 24px;
-  border: 1px solid rgba(164, 118, 126, 0.16);
-  border-radius: 24px;
-  background: rgba(255, 252, 251, 0.96);
-  box-shadow: 0 18px 36px rgba(111, 59, 69, 0.08);
-}
-
-.error-card {
-  border-color: rgba(178, 74, 96, 0.28);
 }
 
 .group-eyebrow {
@@ -258,23 +281,9 @@ p {
   line-height: 1.7;
 }
 
-.feedback {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.feedback.error {
-  color: #b54861;
-}
-
-.actions {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.actions button {
+.primary,
+.secondary,
+.ghost {
   min-height: 48px;
   padding: 0 18px;
   border-radius: 16px;
@@ -288,11 +297,15 @@ p {
     opacity 0.18s ease;
 }
 
-.actions button:hover:enabled {
+.primary:hover:enabled,
+.secondary:hover:enabled,
+.ghost:hover:enabled {
   transform: translateY(-1px);
 }
 
-.actions button:disabled {
+.primary:disabled,
+.secondary:disabled,
+.ghost:disabled {
   opacity: 0.56;
   cursor: not-allowed;
 }
@@ -309,9 +322,9 @@ p {
   color: #7f4250;
 }
 
-@media (max-width: 720px) {
-  .actions {
-    flex-direction: column;
-  }
+.ghost {
+  background: rgba(255, 252, 251, 0.92);
+  border-color: rgba(181, 91, 109, 0.16);
+  color: #7f4250;
 }
 </style>
