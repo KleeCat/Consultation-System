@@ -1,17 +1,33 @@
 <template>
-  <main class="capture-view">
-    <header class="capture-header">
-      <span class="eyebrow">舌象采集</span>
-      <h2>实时采集</h2>
-      <p>优先尝试本机摄像头，也支持上传照片和示例图，便于在不同设备上完整走通流程。</p>
-    </header>
+  <PatientPageShell class="capture-view">
+    <template #header>
+      <PatientStageHeader v-bind="patientStages.capture" tone="highlight" />
+    </template>
 
-    <CameraPreview :busy="uploading" @captured="handleCaptured" />
+    <PatientCard class="capture-view__primary-card" title="摄像头" variant="highlight">
+      <CameraPreview :busy="uploading" @captured="handleCaptured" />
+    </PatientCard>
 
-    <p v-if="uploading" class="feedback neutral">正在上传图像并分析质量，请稍候…</p>
-    <p v-else-if="qualityMessage" class="feedback success">{{ qualityMessage }}</p>
-    <p v-if="errorMessage" class="feedback error">{{ errorMessage }}</p>
-  </main>
+    <PatientTipCard v-if="uploading" tone="info" title="处理中">
+      <p>请保持稳定，正在处理当前图像</p>
+    </PatientTipCard>
+
+    <PatientTipCard v-else-if="qualityMessage" tone="success" title="上传完成">
+      <p>{{ qualityMessage }}</p>
+    </PatientTipCard>
+
+    <PatientTipCard v-if="errorMessage" tone="warning" title="上传失败">
+      <p>{{ errorMessage }}</p>
+    </PatientTipCard>
+
+    <template #actions>
+      <PatientActionBar>
+        <button class="secondary" type="button" :disabled="uploading" @click="goBackToGuide">
+          返回采集准备
+        </button>
+      </PatientActionBar>
+    </template>
+  </PatientPageShell>
 </template>
 
 <script setup lang="ts">
@@ -20,6 +36,12 @@ import { useRouter } from 'vue-router'
 
 import { uploadCapture } from '../../api/consultation'
 import CameraPreview from '../../components/capture/CameraPreview.vue'
+import PatientActionBar from '../../components/patient/PatientActionBar.vue'
+import PatientCard from '../../components/patient/PatientCard.vue'
+import PatientPageShell from '../../components/patient/PatientPageShell.vue'
+import PatientStageHeader from '../../components/patient/PatientStageHeader.vue'
+import PatientTipCard from '../../components/patient/PatientTipCard.vue'
+import { patientStages } from '../../constants/patientStages'
 import { useConsultationStore } from '../../stores/consultation'
 
 const router = useRouter()
@@ -27,6 +49,10 @@ const store = useConsultationStore()
 const qualityMessage = ref('')
 const errorMessage = ref('')
 const uploading = ref(false)
+
+function goBackToGuide() {
+  router.push('/patient/capture-guide')
+}
 
 async function handleCaptured(imageBase64: string) {
   if (uploading.value) return
@@ -64,54 +90,27 @@ async function handleCaptured(imageBase64: string) {
 </script>
 
 <style scoped>
-.capture-view {
-  display: grid;
-  gap: 22px;
+.capture-view__primary-card {
+  align-self: stretch;
 }
 
-.capture-header {
-  display: grid;
-  gap: 8px;
+.capture-view :deep(.patient-tip-card__content p) {
+  margin: 0;
 }
 
-.eyebrow {
-  display: inline-flex;
-  width: fit-content;
-  padding: 6px 12px;
+.secondary {
+  min-height: 44px;
+  padding: 0.85rem 1.4rem;
+  border: 1px solid rgba(120, 84, 89, 0.16);
   border-radius: 999px;
-  background: rgba(175, 92, 104, 0.12);
-  color: #a15a68;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  background: rgba(255, 252, 251, 0.92);
+  color: var(--patient-text-strong);
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.capture-header h2 {
-  margin: 0;
-  color: #4f2d33;
-  font-size: 36px;
-  line-height: 1.15;
-}
-
-.capture-header p {
-  margin: 0;
-  color: #73595e;
-  line-height: 1.8;
-}
-
-.feedback {
-  margin: 0;
-  font-size: 14px;
-}
-
-.feedback.neutral {
-  color: #6f565a;
-}
-
-.feedback.success {
-  color: #80555d;
-}
-
-.feedback.error {
-  color: #b42318;
+.secondary:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 </style>

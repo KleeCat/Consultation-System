@@ -50,7 +50,7 @@ describe('camera preview', () => {
     vi.restoreAllMocks()
   })
 
-  it('requests camera access, binds the stream to video, and emits a captured frame', async () => {
+  it('requests camera access, shows patient-facing capture copy, and emits a captured frame', async () => {
     const mediaStream = {
       getTracks: () => [{ stop: stopMock }],
     }
@@ -64,6 +64,10 @@ describe('camera preview', () => {
         audio: false,
       }),
     )
+
+    expect(wrapper.text()).toContain('第四步：舌象采集')
+    expect(wrapper.text()).toContain('请保持稳定')
+    expect(wrapper.text()).toContain('使用示例舌象图片')
 
     const video = wrapper.get('video').element as HTMLVideoElement
     expect(video.srcObject).toBe(mediaStream)
@@ -83,14 +87,28 @@ describe('camera preview', () => {
     expect(wrapper.emitted('captured')?.[0]).toEqual(['camera-shot'])
   })
 
-  it('shows permission guidance when camera access is denied', async () => {
-    getUserMediaMock.mockRejectedValue(Object.assign(new Error('denied'), { name: 'NotAllowedError' }))
+  it('shows permission guidance and lets the user retry camera authorization', async () => {
+    getUserMediaMock
+      .mockRejectedValueOnce(Object.assign(new Error('denied'), { name: 'NotAllowedError' }))
+      .mockResolvedValueOnce({
+        getTracks: () => [{ stop: stopMock }],
+      })
 
     const wrapper = mount(CameraPreview)
     await flushPromises()
 
     expect(wrapper.text()).toContain('请允许摄像头权限后重试')
     expect(wrapper.text()).toContain('重新开启摄像头')
+
+    const retryButton = wrapper
+      .findAll('button')
+      .find((button) => button.text() === '重新开启摄像头')
+
+    expect(retryButton).toBeTruthy()
+    await retryButton!.trigger('click')
+    await flushPromises()
+
+    expect(getUserMediaMock).toHaveBeenCalledTimes(2)
   })
 
   it('shows timeout guidance when camera startup keeps pending', async () => {
@@ -98,6 +116,12 @@ describe('camera preview', () => {
     getUserMediaMock.mockImplementation(() => new Promise(() => {}))
 
     const wrapper = mount(CameraPreview)
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.text()).toContain('第四步：舌象采集')
+    expect(wrapper.text()).toContain('请保持稳定')
+    expect(wrapper.text()).toContain('正在连接摄像头，请稍候')
+
     await vi.advanceTimersByTimeAsync(8000)
     await flushPromises()
 
@@ -110,11 +134,14 @@ describe('camera preview', () => {
     expect(retryButton!.attributes('disabled')).toBeUndefined()
   })
 
-  it('emits a non-trivial demo tongue image for fallback testing', async () => {
+  it('shows unavailable fallback guidance and emits a demo tongue image', async () => {
     getUserMediaMock.mockRejectedValue(Object.assign(new Error('camera unavailable'), { name: 'NotFoundError' }))
 
     const wrapper = mount(CameraPreview)
     await flushPromises()
+
+    expect(wrapper.text()).toContain('未检测到可用摄像头')
+    expect(wrapper.text()).toContain('使用示例舌象图片')
 
     const demoButton = wrapper
       .findAll('button')

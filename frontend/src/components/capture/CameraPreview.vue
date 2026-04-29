@@ -1,5 +1,13 @@
 <template>
-  <section class="capture-panel">
+  <section class="camera-preview">
+    <header class="camera-preview__header">
+      <p class="camera-preview__eyebrow">第四步：舌象采集</p>
+      <div class="camera-preview__header-copy">
+        <h3>摄像头实时预览</h3>
+        <p>请保持稳定，让舌面位于取景中央并保持光线均匀。</p>
+      </div>
+    </header>
+
     <div class="preview-stage" :class="{ ready: cameraStatus === 'ready' }">
       <video
         v-show="cameraStatus === 'ready'"
@@ -8,29 +16,24 @@
         muted
         playsinline
       />
+
       <div v-if="cameraStatus !== 'ready'" class="preview-placeholder">
-        <div class="preview-badge">舌象采集</div>
-        <h3>{{ previewTitle }}</h3>
+        <span class="preview-badge">{{ statusBadge }}</span>
+        <h4>{{ previewTitle }}</h4>
         <p>{{ previewDescription }}</p>
       </div>
+
+      <div v-else class="preview-overlay">
+        <span class="preview-badge">实时画面</span>
+        <p>请保持稳定</p>
+      </div>
+
       <canvas ref="canvasRef" class="hidden-canvas" />
     </div>
 
-    <div class="helper-copy">
-      <p v-if="cameraStatus === 'starting'" class="helper-text neutral">正在连接摄像头，请稍候…</p>
-      <p v-else-if="cameraError === 'permission_denied'" class="helper-text warning">
-        请允许摄像头权限后重试
-      </p>
-      <p v-else-if="cameraError === 'unavailable'" class="helper-text warning">
-        未检测到可用摄像头，请上传本地照片或使用示例图继续测试
-      </p>
-      <p v-else-if="cameraError === 'timeout'" class="helper-text warning">
-        摄像头启动超时，请检查浏览器授权、设备占用后重试
-      </p>
-      <p v-else class="helper-text neutral">
-        请让舌面居中、光线均匀，避免逆光和明显阴影
-      </p>
-    </div>
+    <p class="helper-text" :class="helperToneClass">
+      {{ helperText }}
+    </p>
 
     <div class="action-row">
       <button
@@ -104,6 +107,26 @@ const previewDescription = computed(() => {
   if (cameraError.value === 'timeout') return '请检查授权弹窗、系统相机占用，或点击重新开启摄像头再次尝试'
   return '系统会优先尝试调用本机摄像头，也支持上传图片或示例图兜底'
 })
+
+const statusBadge = computed(() => {
+  if (cameraStatus.value === 'starting') return '启动中'
+  if (cameraError.value === 'permission_denied') return '等待授权'
+  if (cameraError.value === 'unavailable') return '不可用'
+  if (cameraError.value === 'timeout') return '已超时'
+  return '摄像头'
+})
+
+const helperText = computed(() => {
+  if (cameraStatus.value === 'starting') return '正在连接摄像头，请稍候'
+  if (cameraError.value === 'permission_denied') return '请允许摄像头权限后重试'
+  if (cameraError.value === 'unavailable') return '未检测到可用摄像头，请上传本地照片或使用示例图片继续'
+  if (cameraError.value === 'timeout') return '摄像头启动超时，请检查浏览器授权、设备占用后重试'
+  return '请保持稳定，让舌面居中、光线均匀，避免逆光和明显阴影'
+})
+
+const helperToneClass = computed(() => ({
+  'helper-text--warning': cameraError.value !== '',
+}))
 
 function stopCamera() {
   streamRef.value?.getTracks().forEach((track) => track.stop())
@@ -223,27 +246,64 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.capture-panel {
+.camera-preview {
   display: grid;
   gap: 18px;
+}
+
+.camera-preview__header {
+  display: grid;
+  gap: 10px;
+}
+
+.camera-preview__eyebrow {
+  margin: 0;
+  width: fit-content;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(181, 91, 109, 0.12);
+  color: var(--patient-accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.camera-preview__header-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.camera-preview__header-copy h3,
+.camera-preview__header-copy p {
+  margin: 0;
+}
+
+.camera-preview__header-copy h3 {
+  color: var(--patient-text-strong);
+  font-size: clamp(1.3rem, 3vw, 1.65rem);
+}
+
+.camera-preview__header-copy p {
+  color: var(--patient-text-muted);
+  line-height: 1.7;
 }
 
 .preview-stage {
   position: relative;
   min-height: 360px;
   overflow: hidden;
-  border: 1px solid rgba(168, 132, 132, 0.28);
+  border: 1px solid rgba(181, 91, 109, 0.16);
   border-radius: 28px;
   background:
-    radial-gradient(circle at top, rgba(255, 244, 244, 0.95), rgba(244, 233, 228, 0.92)),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(233, 221, 217, 0.82));
+    radial-gradient(circle at top, rgba(255, 246, 241, 0.98), rgba(247, 236, 231, 0.92)),
+    linear-gradient(140deg, rgba(255, 255, 255, 0.86), rgba(238, 225, 221, 0.82));
   box-shadow:
-    0 24px 60px rgba(101, 53, 59, 0.12),
+    0 20px 48px rgba(111, 59, 69, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .preview-stage.ready {
-  background: #23171a;
+  background: linear-gradient(180deg, #24171b 0%, #140d10 100%);
 }
 
 video {
@@ -253,141 +313,152 @@ video {
   object-fit: cover;
 }
 
-.preview-placeholder {
+.preview-placeholder,
+.preview-overlay {
+  position: absolute;
+  inset: 0;
   display: grid;
-  place-items: center;
-  gap: 10px;
-  height: 360px;
-  padding: 24px;
+  align-content: center;
+  justify-items: center;
+  gap: 12px;
+  padding: 28px;
   text-align: center;
 }
 
-.preview-placeholder h3 {
-  margin: 0;
-  color: #5d3138;
-  font-size: 28px;
-  font-weight: 700;
+.preview-overlay {
+  align-content: space-between;
+  justify-items: stretch;
+  pointer-events: none;
 }
 
-.preview-placeholder p {
-  max-width: 420px;
+.preview-overlay p {
   margin: 0;
-  color: #7b5d61;
-  line-height: 1.7;
+  justify-self: start;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(15, 8, 10, 0.5);
+  color: rgba(255, 250, 249, 0.96);
+  font-weight: 600;
 }
 
 .preview-badge {
-  padding: 8px 14px;
+  display: inline-flex;
+  width: fit-content;
+  padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  background: rgba(149, 84, 94, 0.12);
-  color: #9d5863;
-  font-size: 13px;
+  background: rgba(181, 91, 109, 0.14);
+  color: var(--patient-accent);
+  font-size: 0.78rem;
+  font-weight: 600;
   letter-spacing: 0.08em;
+}
+
+.preview-placeholder h4,
+.preview-placeholder p {
+  margin: 0;
+}
+
+.preview-placeholder h4 {
+  color: var(--patient-text-strong);
+  font-size: 1.3rem;
+}
+
+.preview-placeholder p {
+  max-width: 28rem;
+  color: var(--patient-text-muted);
+  line-height: 1.7;
+}
+
+.helper-text {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 252, 251, 0.92);
+  border: 1px solid rgba(181, 91, 109, 0.12);
+  color: var(--patient-text-muted);
+  line-height: 1.7;
+}
+
+.helper-text--warning {
+  background: rgba(255, 248, 240, 0.96);
+  border-color: rgba(168, 106, 63, 0.22);
+  color: var(--patient-warning);
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.action-row button {
+  min-height: 46px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.action-row button:disabled,
+.upload-card.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.primary {
+  background: linear-gradient(135deg, #a44b5f, #c96d79);
+  color: #fffaf9;
+}
+
+.secondary {
+  background: rgba(255, 252, 251, 0.92);
+  border-color: rgba(181, 91, 109, 0.16);
+  color: var(--patient-text-strong);
+}
+
+.ghost {
+  background: rgba(255, 248, 245, 0.82);
+  border-color: rgba(181, 91, 109, 0.12);
+  color: var(--patient-accent);
+}
+
+.upload-card {
+  display: grid;
+  gap: 6px;
+  padding: 1rem 1.1rem;
+  border: 1px dashed rgba(181, 91, 109, 0.28);
+  border-radius: 20px;
+  background: rgba(255, 252, 251, 0.9);
+  color: var(--patient-text-muted);
+}
+
+.upload-card strong {
+  color: var(--patient-text-strong);
+}
+
+.upload-card input {
+  width: 100%;
 }
 
 .hidden-canvas {
   display: none;
 }
 
-.helper-copy {
-  display: flex;
-  align-items: center;
-}
-
-.helper-text {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.helper-text.neutral {
-  color: #6f565a;
-}
-
-.helper-text.warning {
-  color: #a63b52;
-}
-
-.action-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.action-row button {
-  min-height: 48px;
-  padding: 0 16px;
-  border-radius: 16px;
-  border: 1px solid transparent;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    opacity 0.18s ease;
-}
-
-.action-row button:hover:enabled {
-  transform: translateY(-1px);
-}
-
-.action-row button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.primary {
-  background: linear-gradient(135deg, #a44b5f, #c96d79);
-  color: #fffaf9;
-  box-shadow: 0 16px 28px rgba(162, 80, 98, 0.24);
-}
-
-.secondary {
-  background: rgba(164, 75, 95, 0.08);
-  border-color: rgba(164, 75, 95, 0.18);
-  color: #7e4050;
-}
-
-.ghost {
-  background: #ffffff;
-  border-color: rgba(120, 84, 89, 0.16);
-  color: #5d3e44;
-}
-
-.upload-card {
-  display: grid;
-  gap: 6px;
-  padding: 18px 20px;
-  border: 1px dashed rgba(146, 98, 104, 0.34);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.72);
-  cursor: pointer;
-}
-
-.upload-card.disabled {
-  opacity: 0.56;
-  cursor: not-allowed;
-}
-
-.upload-card input {
-  display: none;
-}
-
-.upload-card strong {
-  color: #5b343b;
-  font-size: 15px;
-}
-
-.upload-card span {
-  color: #82686d;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
 @media (max-width: 720px) {
+  .preview-stage,
+  video {
+    min-height: 300px;
+    height: 300px;
+  }
+
   .action-row {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .action-row button {
+    width: 100%;
   }
 }
 </style>
