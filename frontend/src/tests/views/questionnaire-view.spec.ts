@@ -62,6 +62,18 @@ const template = {
   ],
 }
 
+const emptyTemplate = {
+  ...template,
+  groups: [
+    {
+      group_code: 'unused_group',
+      group_title: '未匹配分组',
+      group_description: '这个分组当前没有对应题目。',
+    },
+  ],
+  questions: [],
+}
+
 function mountView() {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -151,6 +163,19 @@ describe('questionnaire view', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('问卷加载失败')
+    expect(wrapper.text()).toContain('重新加载')
+    expect(wrapper.text()).toContain('返回建档页')
+  })
+
+  it('shows recovery actions when the template has no available question groups', async () => {
+    vi.mocked(getQuestionnaireTemplate).mockResolvedValue(emptyTemplate)
+
+    const { wrapper } = mountView()
+
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('暂无问卷内容')
+    expect(wrapper.text()).toContain('请重新加载后重试')
     expect(wrapper.text()).toContain('重新加载')
     expect(wrapper.text()).toContain('返回建档页')
   })

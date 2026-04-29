@@ -58,7 +58,7 @@
       </PatientTipCard>
     </template>
 
-    <template v-if="loadError" #actions>
+    <template v-if="loadError || (!loading && (!template || !currentGroup))" #actions>
       <PatientActionBar>
         <button type="button" class="secondary" @click="loadTemplate">重新加载</button>
         <button type="button" class="ghost" @click="goToProfile">返回建档页</button>
