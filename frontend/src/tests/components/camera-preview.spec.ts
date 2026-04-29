@@ -140,7 +140,7 @@ describe('camera preview', () => {
     const wrapper = mount(CameraPreview)
     await flushPromises()
 
-    expect(wrapper.text()).toContain('未检测到可用摄像头')
+    expect(wrapper.text()).toContain('未检测到可用摄像头，请上传本地照片或使用示例图继续测试')
     expect(wrapper.text()).toContain('使用示例舌象图片')
 
     const demoButton = wrapper

@@ -119,7 +119,7 @@ const statusBadge = computed(() => {
 const helperText = computed(() => {
   if (cameraStatus.value === 'starting') return '正在连接摄像头，请稍候'
   if (cameraError.value === 'permission_denied') return '请允许摄像头权限后重试'
-  if (cameraError.value === 'unavailable') return '未检测到可用摄像头，请上传本地照片或使用示例图片继续'
+  if (cameraError.value === 'unavailable') return '未检测到可用摄像头，请上传本地照片或使用示例图继续测试'
   if (cameraError.value === 'timeout') return '摄像头启动超时，请检查浏览器授权、设备占用后重试'
   return '请保持稳定，让舌面居中、光线均匀，避免逆光和明显阴影'
 })
